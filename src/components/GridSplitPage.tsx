@@ -5,6 +5,8 @@ import { useSlicerImage } from "../hooks/useSlicerImage";
 import {
   useSlicerLines,
   clampCount,
+  linesFromCount,
+  normalizeLines,
   MAX_GRID_COUNT,
 } from "../hooks/useSlicerLines";
 import { useSliceGeneration } from "../hooks/useSliceGeneration";
@@ -123,13 +125,15 @@ export default function GridSplitPage({
     clearSelection();
   }, [clearSlices, clearSelection]);
 
-  const applyGrid = useCallback(
-    (nextCols = cols, nextRows = rows) => {
-      applyGridState(nextCols, nextRows);
-      clearAll();
-    },
-    [applyGridState, cols, rows, clearAll],
-  );
+  const applyAndGenerate = useCallback(() => {
+    const safeCols = clampCount(cols);
+    const safeRows = clampCount(rows);
+    const vLines = normalizeLines(linesFromCount(safeCols));
+    const hLines = normalizeLines(linesFromCount(safeRows));
+    applyGridState(safeCols, safeRows);
+    clearSelection();
+    void generateSlices({ vertical: vLines, horizontal: hLines });
+  }, [cols, rows, applyGridState, clearSelection, generateSlices]);
 
   const clearAllLines = useCallback(() => {
     clearAllLinesState();
@@ -218,30 +222,23 @@ export default function GridSplitPage({
   ];
 
   return (
-    <div className="min-h-[calc(100vh-3.5rem)] bg-gray-50/70 pb-10 dark:bg-gray-950">
+    <div className="min-h-screen bg-gray-50/70 pb-10 dark:bg-gray-950">
       <div className="safe-area-x mx-auto flex max-w-7xl flex-col gap-4 py-4">
-        <div className="flex flex-col gap-3 border-b border-gray-200 pb-4 sm:flex-row sm:items-end sm:justify-between dark:border-white/[0.08]">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-gray-100">
-              宫格图切分工作台
-            </h1>
-          </div>
-          <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-            <span className="rounded-md bg-white px-2 py-1 shadow-sm dark:bg-white/[0.06]">
-              {image
-                ? `${image.naturalWidth}×${image.naturalHeight}`
-                : "未选择图片"}
-            </span>
-            <span className="rounded-md bg-white px-2 py-1 shadow-sm dark:bg-white/[0.06]">
-              {lines.verticalLines.length} 条纵线
-            </span>
-            <span className="rounded-md bg-white px-2 py-1 shadow-sm dark:bg-white/[0.06]">
-              {lines.horizontalLines.length} 条横线
-            </span>
-            <span className="rounded-md bg-white px-2 py-1 shadow-sm dark:bg-white/[0.06]">
-              预计 {totalPieces} 张
-            </span>
-          </div>
+        <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+          <span className="rounded-md bg-white px-2 py-1 shadow-sm dark:bg-white/[0.06]">
+            {image
+              ? `${image.naturalWidth}×${image.naturalHeight}`
+              : "未选择图片"}
+          </span>
+          <span className="rounded-md bg-white px-2 py-1 shadow-sm dark:bg-white/[0.06]">
+            {lines.verticalLines.length} 条纵线
+          </span>
+          <span className="rounded-md bg-white px-2 py-1 shadow-sm dark:bg-white/[0.06]">
+            {lines.horizontalLines.length} 条横线
+          </span>
+          <span className="rounded-md bg-white px-2 py-1 shadow-sm dark:bg-white/[0.06]">
+            预计 {totalPieces} 张
+          </span>
         </div>
 
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
@@ -369,10 +366,12 @@ export default function GridSplitPage({
                 <NumberBox label="行" value={rows} onChange={setRows} />
               </div>
               <button
-                onClick={() => applyGrid()}
-                className="mt-3 w-full rounded-lg bg-blue-500 px-3 py-2 text-sm font-medium text-white transition hover:bg-blue-600"
+                onClick={applyAndGenerate}
+                disabled={!image || isProcessing}
+                className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-gray-900 px-3 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-white dark:text-gray-950 dark:hover:bg-gray-200"
               >
-                应用宫格
+                <GridIcon className="h-4 w-4" />
+                {isProcessing ? "生成中..." : "生成切片预览"}
               </button>
             </section>
 
@@ -458,14 +457,6 @@ export default function GridSplitPage({
                 导出
               </h2>
               <div className="mt-3 grid gap-2">
-                <button
-                  onClick={() => void generateSlices()}
-                  disabled={!image || isProcessing}
-                  className="flex items-center justify-center gap-2 rounded-lg bg-gray-900 px-3 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-white dark:text-gray-950 dark:hover:bg-gray-200"
-                >
-                  <GridIcon className="h-4 w-4" />
-                  {isProcessing ? "生成中..." : "生成切片预览"}
-                </button>
                 <button
                   onClick={() =>
                     void downloadZip(
