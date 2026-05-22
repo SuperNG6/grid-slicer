@@ -24,9 +24,9 @@ export function useSlicerHistory() {
   }, []);
 
   const clearAll = useCallback(async () => {
-    const removed = await clearAllSlicerEntries();
+    const result = await clearAllSlicerEntries();
     setHistory([]);
-    return removed;
+    return result;
   }, []);
 
   return { history, refresh, deleteEntry, clearAll };

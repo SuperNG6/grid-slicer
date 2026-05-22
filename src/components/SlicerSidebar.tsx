@@ -19,7 +19,13 @@ interface Props {
   history: SlicerHistoryEntry[];
   onRestore: (entry: SlicerHistoryEntry) => void;
   onDelete: (id: string) => void;
-  onClearAll: () => Promise<number>;
+  onClearAll: () => Promise<{ count: number; bytes: number }>;
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
 }
 
 export default function SlicerSidebar({
@@ -28,7 +34,10 @@ export default function SlicerSidebar({
   onDelete,
   onClearAll,
 }: Props) {
-  const [clearedCount, setClearedCount] = useState<number | null>(null);
+  const [cleared, setCleared] = useState<{
+    count: number;
+    bytes: number;
+  } | null>(null);
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(
@@ -45,10 +54,10 @@ export default function SlicerSidebar({
 
   const handleClearAll = async () => {
     if (!history.length) return;
-    const removed = await onClearAll();
-    setClearedCount(removed);
+    const result = await onClearAll();
+    setCleared(result);
     if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
-    hideTimerRef.current = setTimeout(() => setClearedCount(null), 3000);
+    hideTimerRef.current = setTimeout(() => setCleared(null), 4000);
   };
 
   return (
@@ -73,8 +82,8 @@ export default function SlicerSidebar({
               className="flex w-full items-center justify-center gap-1 rounded-md border border-red-200 px-2 py-1.5 text-xs font-medium text-red-500 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-red-500/30 dark:hover:bg-red-500/10"
             >
               <TrashIcon className="h-3.5 w-3.5" />
-              {clearedCount !== null
-                ? `已清除 ${clearedCount} 条记录`
+              {cleared
+                ? `已清除 ${cleared.count} 条 · ${formatBytes(cleared.bytes)}`
                 : "清除全部历史"}
             </button>
           </div>

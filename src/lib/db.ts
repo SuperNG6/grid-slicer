@@ -139,6 +139,14 @@ export function clearAllSlicerHistory(): Promise<undefined> {
   return dbTransaction(STORE_SLICER_HISTORY, "readwrite", (s) => s.clear());
 }
 
+export function getAllImages(): Promise<StoredImage[]> {
+  return dbTransaction(STORE_IMAGES, "readonly", (s) => s.getAll());
+}
+
+export function clearAllImages(): Promise<undefined> {
+  return dbTransaction(STORE_IMAGES, "readwrite", (s) => s.clear());
+}
+
 // suppress unused warning — thumbnail version used by slicerHistory
 void THUMBNAIL_VERSION;
 void createThumbnailDataUrl;

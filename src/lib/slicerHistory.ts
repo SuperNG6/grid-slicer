@@ -6,6 +6,8 @@ import {
   putSlicerHistoryEntry,
   deleteSlicerHistoryEntry,
   clearAllSlicerHistory,
+  getAllImages,
+  clearAllImages,
 } from "./db";
 
 export type { SlicerHistoryEntry };
@@ -56,10 +58,34 @@ export async function deleteSlicerEntry(id: string): Promise<void> {
   await deleteSlicerHistoryEntry(id);
 }
 
-export async function clearAllSlicerEntries(): Promise<number> {
-  const all = await getAllSlicerHistory();
-  await clearAllSlicerHistory();
-  return all.length;
+function approxDataUrlBytes(dataUrl: string | undefined | null): number {
+  if (!dataUrl) return 0;
+  const commaIdx = dataUrl.indexOf(",");
+  const base64 = commaIdx >= 0 ? dataUrl.slice(commaIdx + 1) : dataUrl;
+  let pad = 0;
+  if (base64.endsWith("==")) pad = 2;
+  else if (base64.endsWith("=")) pad = 1;
+  return Math.max(0, Math.floor((base64.length * 3) / 4) - pad);
+}
+
+export async function clearAllSlicerEntries(): Promise<{
+  count: number;
+  bytes: number;
+}> {
+  const [entries, images] = await Promise.all([
+    getAllSlicerHistory(),
+    getAllImages(),
+  ]);
+  const thumbBytes = entries.reduce(
+    (sum, e) => sum + approxDataUrlBytes(e.thumb),
+    0,
+  );
+  const imageBytes = images.reduce(
+    (sum, img) => sum + approxDataUrlBytes(img.dataUrl),
+    0,
+  );
+  await Promise.all([clearAllSlicerHistory(), clearAllImages()]);
+  return { count: entries.length, bytes: thumbBytes + imageBytes };
 }
 
 export async function loadSlicerImage(imageId: string): Promise<string | null> {
