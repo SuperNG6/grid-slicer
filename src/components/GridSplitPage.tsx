@@ -467,12 +467,20 @@ export default function GridSplitPage({
                   {isProcessing ? "生成中..." : "生成切片预览"}
                 </button>
                 <button
-                  onClick={() => void downloadZip(selectedSliceNames)}
-                  disabled={!selectedSliceNames.length}
+                  onClick={() =>
+                    void downloadZip(
+                      selectedSliceNames.length
+                        ? selectedSliceNames
+                        : slices.map((s) => s.name),
+                    )
+                  }
+                  disabled={!slices.length}
                   className="flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   <DownloadIcon className="h-4 w-4" />
-                  打包下载选中 ZIP
+                  {selectedSliceNames.length
+                    ? "打包下载选中 ZIP"
+                    : "打包下载全部图片 ZIP"}
                 </button>
                 <button
                   onClick={clearAll}
