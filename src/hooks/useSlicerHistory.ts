@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import type { SlicerHistoryEntry } from "../types";
-import { getSlicerHistory, deleteSlicerEntry } from "../lib/slicerHistory";
+import {
+  getSlicerHistory,
+  deleteSlicerEntry,
+  clearAllSlicerEntries,
+} from "../lib/slicerHistory";
 
 export function useSlicerHistory() {
   const [history, setHistory] = useState<SlicerHistoryEntry[]>([]);
@@ -19,5 +23,11 @@ export function useSlicerHistory() {
     setHistory((prev) => prev.filter((e) => e.id !== id));
   }, []);
 
-  return { history, refresh, deleteEntry };
+  const clearAll = useCallback(async () => {
+    const removed = await clearAllSlicerEntries();
+    setHistory([]);
+    return removed;
+  }, []);
+
+  return { history, refresh, deleteEntry, clearAll };
 }

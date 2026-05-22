@@ -17,7 +17,7 @@ export default function App() {
   const [restoreEntry, setRestoreEntry] = useState<SlicerHistoryEntry | null>(
     null,
   );
-  const { history, refresh, deleteEntry } = useSlicerHistory();
+  const { history, refresh, deleteEntry, clearAll } = useSlicerHistory();
 
   const showToast = useCallback((msg: string, type = "info") => {
     setToast({ msg, type });
@@ -37,6 +37,7 @@ export default function App() {
         history={history}
         onRestore={setRestoreEntry}
         onDelete={deleteEntry}
+        onClearAll={clearAll}
       />
       <main className="md:pl-72">
         <GridSplitPage

@@ -5,6 +5,7 @@ import {
   getAllSlicerHistory,
   putSlicerHistoryEntry,
   deleteSlicerHistoryEntry,
+  clearAllSlicerHistory,
 } from "./db";
 
 export type { SlicerHistoryEntry };
@@ -53,6 +54,12 @@ export async function saveSlicerEntry(
 
 export async function deleteSlicerEntry(id: string): Promise<void> {
   await deleteSlicerHistoryEntry(id);
+}
+
+export async function clearAllSlicerEntries(): Promise<number> {
+  const all = await getAllSlicerHistory();
+  await clearAllSlicerHistory();
+  return all.length;
 }
 
 export async function loadSlicerImage(imageId: string): Promise<string | null> {

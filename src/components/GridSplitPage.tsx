@@ -451,37 +451,6 @@ export default function GridSplitPage({
                 )}
               </div>
             </section>
-
-            <section className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-white/[0.08] dark:bg-gray-900">
-              <h2 className="text-sm font-semibold text-gray-800 dark:text-gray-100">
-                导出
-              </h2>
-              <div className="mt-3 grid gap-2">
-                <button
-                  onClick={() =>
-                    void downloadZip(
-                      selectedSliceNames.length
-                        ? selectedSliceNames
-                        : slices.map((s) => s.name),
-                    )
-                  }
-                  disabled={!slices.length}
-                  className="flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  <DownloadIcon className="h-4 w-4" />
-                  {selectedSliceNames.length
-                    ? "打包下载选中 ZIP"
-                    : "打包下载全部图片 ZIP"}
-                </button>
-                <button
-                  onClick={clearAll}
-                  disabled={!slices.length}
-                  className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/[0.08] dark:text-gray-300 dark:hover:bg-white/[0.05]"
-                >
-                  清空预览结果
-                </button>
-              </div>
-            </section>
           </aside>
         </div>
 
@@ -592,6 +561,37 @@ export default function GridSplitPage({
               生成切片后会在这里预览结果
             </div>
           )}
+        </section>
+
+        <section className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-white/[0.08] dark:bg-gray-900">
+          <h2 className="text-sm font-semibold text-gray-800 dark:text-gray-100">
+            导出
+          </h2>
+          <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_auto]">
+            <button
+              onClick={() =>
+                void downloadZip(
+                  selectedSliceNames.length
+                    ? selectedSliceNames
+                    : slices.map((s) => s.name),
+                )
+              }
+              disabled={!slices.length}
+              className="flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <DownloadIcon className="h-4 w-4" />
+              {selectedSliceNames.length
+                ? "打包下载选中 ZIP"
+                : "打包下载全部图片 ZIP"}
+            </button>
+            <button
+              onClick={clearAll}
+              disabled={!slices.length}
+              className="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/[0.08] dark:text-gray-300 dark:hover:bg-white/[0.05]"
+            >
+              清空预览结果
+            </button>
+          </div>
         </section>
       </div>
     </div>

@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import type { SlicerHistoryEntry } from "../types";
 import { TrashIcon } from "./icons";
 
@@ -18,17 +19,44 @@ interface Props {
   history: SlicerHistoryEntry[];
   onRestore: (entry: SlicerHistoryEntry) => void;
   onDelete: (id: string) => void;
+  onClearAll: () => Promise<number>;
 }
 
-export default function SlicerSidebar({ history, onRestore, onDelete }: Props) {
+export default function SlicerSidebar({
+  history,
+  onRestore,
+  onDelete,
+  onClearAll,
+}: Props) {
+  const [clearedCount, setClearedCount] = useState<number | null>(null);
+  const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    },
+    [],
+  );
+
   const handleDelete = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     onDelete(id);
   };
 
+  const handleClearAll = async () => {
+    if (!history.length) return;
+    const removed = await onClearAll();
+    setClearedCount(removed);
+    if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    hideTimerRef.current = setTimeout(() => setClearedCount(null), 3000);
+  };
+
   return (
-    <aside className="safe-area-x md:safe-area-top md:fixed md:left-0 md:top-14 md:bottom-0 md:z-30 md:w-72 md:border-r md:border-gray-200 md:bg-gray-50/90 md:px-3 md:py-4 md:backdrop-blur dark:md:border-white/[0.08] dark:md:bg-gray-950/90">
+    <aside className="safe-area-x md:safe-area-top md:fixed md:left-0 md:top-0 md:bottom-0 md:z-30 md:w-72 md:border-r md:border-gray-200 md:bg-gray-50/90 md:px-3 md:py-4 md:backdrop-blur dark:md:border-white/[0.08] dark:md:bg-gray-950/90">
       <div className="mx-auto flex max-w-7xl flex-col gap-3 md:h-full md:max-w-none">
+        <div className="hidden text-base font-semibold tracking-tight text-gray-900 md:block dark:text-gray-100">
+          宫格图切分工具
+        </div>
         <div className="rounded-lg border border-gray-200 bg-white shadow-sm md:flex md:min-h-0 md:flex-1 md:flex-col dark:border-white/[0.08] dark:bg-gray-900">
           <div className="flex items-center justify-between border-b border-gray-100 px-3 py-2 dark:border-white/[0.06]">
             <h2 className="text-xs font-semibold text-gray-500 dark:text-gray-400">
@@ -37,6 +65,18 @@ export default function SlicerSidebar({ history, onRestore, onDelete }: Props) {
             <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[11px] text-gray-500 dark:bg-white/[0.06] dark:text-gray-400">
               {history.length}
             </span>
+          </div>
+          <div className="border-b border-gray-100 px-3 py-2 dark:border-white/[0.06]">
+            <button
+              onClick={handleClearAll}
+              disabled={!history.length}
+              className="flex w-full items-center justify-center gap-1 rounded-md border border-red-200 px-2 py-1.5 text-xs font-medium text-red-500 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-red-500/30 dark:hover:bg-red-500/10"
+            >
+              <TrashIcon className="h-3.5 w-3.5" />
+              {clearedCount !== null
+                ? `已清除 ${clearedCount} 条记录`
+                : "清除全部历史"}
+            </button>
           </div>
           <div className="max-h-64 overflow-y-auto p-2 md:max-h-none md:min-h-0 md:flex-1">
             {history.length === 0 ? (
